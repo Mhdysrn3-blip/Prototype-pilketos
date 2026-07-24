@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Voting & Live Count Ketua OSIS</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 750px; background: white; margin: 0 auto; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); position: relative; }
+    
+    /* Judul dengan efek klik rahasia untuk operator */
+    h2 { text-align: center; color: #1a1a1a; margin-bottom: 5px; cursor: pointer; user-select: none; }
+    p.subtitle { text-align: center; color: #666; font-size: 14px; margin-top: 0; margin-bottom: 30px; }
+    
+    /* Input Token */
+    .token-box { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #e9ecef; }
+    label { font-weight: bold; color: #444; display: block; margin-bottom: 8px; font-size: 14px; }
+    input[type="text"] { width: 100%; padding: 12px; border: 1.5px solid #ccc; border-radius: 8px; font-size: 16px; }
+    input[type="text"]:focus { border-color: #ff6600; outline: none; }
+    
+    /* Grid Kartu Kandidat Berfoto */
+    .kandidat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .kandidat-card { border: 2px solid #e0e0e0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s ease; background: #fff; display: flex; flex-direction: column; }
+    .kandidat-card:hover { border-color: #ff6600; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,102,0,0.15); }
+    
+    .kandidat-card input[type="radio"] { display: none; }
+    .kandidat-card:has(input[type="radio"]:checked) { border-color: #ff6600; background-color: #fff9f5; border-width: 3px; }
+    
+    .card-img { width: 100%; height: 220px; object-fit: cover; background-color: #ddd; }
+    .card-body { padding: 15px; text-align: center; flex-grow: 1; }
+    .card-title { font-size: 16px; font-weight: bold; margin: 0 0 5px 0; color: #222; }
+    .card-desc { font-size: 13px; color: #666; margin: 0; }
+    
+    /* Tombol Vote */
+    button { background-color: #ff6600; color: white; border: none; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 10px rgba(255,102,0,0.2); }
+    button:hover { background-color: #e65c00; }
+    button:disabled { background-color: #cccccc; cursor: not-allowed; box-shadow: none; }
+    #status { margin-top: 15px; font-weight: bold; text-align: center; font-size: 14px; }
+    
+    /* Pesan Terkunci & Panel Operator */
+    #pesan-terkunci { display: none; text-align: center; padding: 30px 10px; }
+    #pesan-terkunci h3 { color: #d9534f; margin-bottom: 10px; }
+    
+    .operator-btn { background-color: #4a5568; margin-top: 15px; font-size: 14px; padding: 10px; }
+    .operator-btn:hover { background-color: #2d3748; }
+
+    /* --- SECTION LIVE COUNT --- */
+    .live-section { margin-top: 40px; padding-top: 30px; border-top: 2px dashed #ddd; }
+    .live-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #333; }
+    .live-subtitle { text-align: center; font-size: 13px; color: #888; margin-bottom: 20px; }
+    .total-badge { background: #222; color: #fff; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+    
+    .bar-container { margin-bottom: 15px; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+    .bar-bg { width: 100%; background-color: #e9ecef; border-radius: 10px; height: 18px; overflow: hidden; }
+    .bar-fill { height: 100%; background-color: #ff6600; width: 0%; transition: width 0.8s ease-in-out; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Judul bisa diklik 5x cepat oleh operator untuk bypass -->
+    <h2 id="main-title">Pemilihan Ketua OSIS</h2>
+    <p class="subtitle">Satu Perangkat Hanya Dapat Menggunakan 1 Hak Suara</p>
+
+    <!-- FORM VOTING -->
+    <form id="form-voting">
+      <div class="token-box">
+        <label for="token">🔑 Token / NIS Siswa:</label>
+        <input type="text" id="token" name="token" required placeholder="Masukkan Token/NIS Anda..." autocomplete="off">
+      </div>
+
+      <label style="margin-bottom: 12px; font-size: 16px;">👥 Pilih Pasangan Calon:</label>
+      
+      <div class="kandidat-grid">
+        <!-- KANDIDAT 1 -->
+        <label class="kandidat-card">
+          <input type="radio" name="kandidat" value="Kandidat 1" required>
+          <img src="img/kandidat1.jpeg" alt="Foto Kandidat 1" class="card-img" onerror="this.src='https://via.placeholder.com/300x220?text=Foto+Paslon+1'">
+          <div class="card-body">
+            <h3 class="card-title">1. Budi & Siti</h3>
+            <p class="card-desc">"OSIS Kreatif, Sekolah Inovatif"</p>
+          </div>
+        </label>
+
+        <!-- KANDIDAT 2 -->
+        <label class="kandidat-card">
+          <input type="radio" name="kandidat" value="Kandidat 2">
+          <img src="img/kandidat2.jpeg" alt="Foto Kandidat 2" class="card-img" onerror="this.src='https://via.placeholder.com/300x220?text=Foto+Paslon+2'">
+          <div class="card-body">
+            <h3 class="card-title">2. Andi & Rina</h3>
+            <p class="card-desc">"Disiplin, Berprestasi, dan Solid"</p>
+          </div>
+        </label>
+
+        <!-- KANDIDAT 3 -->
+        <label class="kandidat-card">
+          <input type="radio" name="kandidat" value="Kandidat 3">
+          <img src="img/kandidat3.jpeg" alt="Foto Kandidat 3" class="card-img" onerror="this.src='https://via.placeholder.com/300x220?text=Foto+Paslon+3'">
+          <div class="card-body">
+            <h3 class="card-title">3. Dimas & Maya</h3>
+            <p class="card-desc">"Mewujudkan Aspirasi Siswa Modern"</p>
+          </div>
+        </label>
+
+        <!-- KANDIDAT 4 -->
+        <label class="kandidat-card">
+          <input type="radio" name="kandidat" value="Kandidat 4">
+          <img src="img/kandidat4.jpeg" alt="Foto Kandidat 4" class="card-img" onerror="this.src='https://via.placeholder.com/300x220?text=Foto+Paslon+4'">
+          <div class="card-body">
+            <h3 class="card-title">4. Reza & Putri</h3>
+            <p class="card-desc">"Bersatu Untuk Sekolah Maju"</p>
+          </div>
+        </label>
+      </div>
+
+      <button type="submit" id="btn-submit">🗳️ Kirim Suara Sekarang</button>
+      <div id="status"></div>
+    </form>
+
+    <!-- PESAN TERKUNCI & TOMBOL RESET OPERATOR -->
+    <div id="pesan-terkunci">
+      <h3>⚠️ Perangkat Telah Digunakan</h3>
+      <p>Hak suara dari HP/Perangkat ini sudah direkam.<br>Terima kasih telah berpartisipasi dalam pemilihan ketua OSIS!</p>
+      
+      <!-- Tombol khusus panitia/operator untuk mereset perangkat ini agar bisa dipakai lagi -->
+      <button type="button" class="operator-btn" onclick="resetPerangkatOperator()">🔧 Reset Perangkat (Khusus Operator)</button>
+    </div>
+
+    <!-- LIVE QUICK COUNT -->
+    <div class="live-section">
+      <div class="live-title">📊 Live Quick Count Hasil Suara</div>
+      <div class="live-subtitle">Data diperbarui otomatis secara real-time dari server</div>
+      <div style="text-align: center;">
+        <span class="total-badge">Total Suara Masuk: <span id="total-suara">0</span></span>
+      </div>
+
+      <div class="bar-container">
+        <div class="bar-label"><span>1. Budi & Siti</span><span id="label-k1">0 suara (0%)</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="bar-k1" style="background-color: #ff6600;"></div></div>
+      </div>
+      <div class="bar-container">
+        <div class="bar-label"><span>2. Andi & Rina</span><span id="label-k2">0 suara (0%)</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="bar-k2" style="background-color: #0088ff;"></div></div>
+      </div>
+      <div class="bar-container">
+        <div class="bar-label"><span>3. Dimas & Maya</span><span id="label-k3">0 suara (0%)</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="bar-k3" style="background-color: #00b862;"></div></div>
+      </div>
+      <div class="bar-container">
+        <div class="bar-label"><span>4. Reza & Putri</span><span id="label-k4">0 suara (0%)</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="bar-k4" style="background-color: #9c27b0;"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyCLfJoy3RHYfyrE261NbUydZy6optP015cl3KJqEQMtDL5FsPZt4h7iFsA7iTinQwo/exec';
+    
+    const form = document.getElementById('form-voting');
+    const btnSubmit = document.getElementById('btn-submit');
+    const statusDiv = document.getElementById('status');
+    const pesanTerkunci = document.getElementById('pesan-terkunci');
+
+    document.addEventListener("DOMContentLoaded", function() {
+      cekStatusPerangkat();
+      ambilDataLive();
+      setInterval(ambilDataLive, 10000);
+    });
+
+    function cekStatusPerangkat() {
+      if (localStorage.getItem("status_voting_osis") === "selesai") {
+        form.style.display = "none";
+        pesanTerkunci.style.display = "block";
+      } else {
+        form.style.display = "block";
+        pesanTerkunci.style.display = "none";
+      }
+    }
+
+    // --- FITUR RAHASIA OPERATOR ---
+    let klikJudul = 0;
+    document.getElementById('main-title').addEventListener('click', function() {
+      klikJudul++;
+      if (klikJudul >= 5) {
+        let pin = prompt("Masukkan PIN Operator:");
+        if (pin === "2026") { // PIN RAHASIA OPERATOR (Bisa diubah bebas)
+          resetPerangkatOperator();
+        } else if (pin !== null) {
+          alert("PIN Salah!");
+        }
+        klikJudul = 0;
+      }
+    });
+
+    function resetPerangkatOperator() {
+      let konfirmasi = confirm("Yakin ingin mereset perangkat ini agar bisa melakukan voting lagi?");
+      if (konfirmasi) {
+        localStorage.removeItem("status_voting_osis");
+        alert("Perangkat berhasil direset! Form voting dapat digunakan kembali.");
+        location.reload();
+      }
+    }
+    // -----------------------------
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = '⏳ Memverifikasi & Mengirim...';
+      statusDiv.style.color = '#555';
+      statusDiv.innerText = 'Mohon tunggu, jangan tutup halaman ini...';
+
+      fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+        .then(response => response.json())
+        .then(data => {
+          if (data.result === 'success') {
+            localStorage.setItem("status_voting_osis", "selesai");
+            statusDiv.style.color = 'green';
+            statusDiv.innerText = '✅ Suara berhasil direkam!';
+            ambilDataLive();
+            setTimeout(() => { cekStatusPerangkat(); }, 1500);
+          } else {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = '🗳️ Kirim Suara Sekarang';
+            statusDiv.style.color = 'red';
+            statusDiv.innerText = '❌ Gagal: ' + (data.message || 'Token/NIS sudah pernah digunakan!');
+          }
+        })
+        .catch(error => {
+          btnSubmit.disabled = false;
+          btnSubmit.innerText = '🗳️ Kirim Suara Sekarang';
+          statusDiv.style.color = 'red';
+          statusDiv.innerText = '⚠️ Terjadi kesalahan jaringan. Periksa koneksi internet Anda.';
+        });
+    });
+
+    function ambilDataLive() {
+      fetch(scriptURL)
+        .then(response => response.json())
+        .then(data => {
+          const total = data.total || 0;
+          document.getElementById('total-suara').innerText = total;
+          updateBar('k1', data['Kandidat 1'] || 0, total);
+          updateBar('k2', data['Kandidat 2'] || 0, total);
+          updateBar('k3', data['Kandidat 3'] || 0, total);
+          updateBar('k4', data['Kandidat 4'] || 0, total);
+        })
+        .catch(err => console.log('Gagal update live count:', err));
+    }
+
+    function updateBar(id, suara, total) {
+      const persen = total > 0 ? Math.round((suara / total) * 100) : 0;
+      document.getElementById(`bar-${id}`).style.width = persen + '%';
+      document.getElementById(`label-${id}`).innerText = `${suara} suara (${persen}%)`;
+    }
+  </script>
+</body>
+</html>
